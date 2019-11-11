@@ -19,9 +19,12 @@ Y = data.iloc[0: train_set_size, 3]
 L = 0.00001  # Learning rate
 
 lambda_vals = [x / 1000 for x in range(1, 10)]
-lambda_vals += 0.1, [0.25, 0.5, 1, 2]
+lambda_vals += [0.1, 0.25, 0.5, 1, 2]
 
 steps_count = 100
+
+def sign(a):
+    return (a > 0) - (a < 0)
 
 def rms_calc(w1, w2, w0):
     rms_error = 0.0
@@ -107,14 +110,19 @@ def lasso_regression():
 
     for lam in lambda_vals:
 
-        while (steps < 1000 and (abs(w0 - w0_new) + abs(w1 - w1_new) + abs(w2 - w2_new)) > precision):
+        # initialization
+        w0, w1, w2 = 0, 0, 0
+        w0_new, w1_new, w2_new = 1, 1, 1
+        steps = 0
+
+        while (steps < steps_count and (abs(w0 - w0_new) + abs(w1 - w1_new) + abs(w2 - w2_new)) > precision):
 
 
             Y_pred = (w1 * X1) + (w2 * X2) + w0
 
-            dr_w0 = (-2 / train_set_size) * sum(Y - Y_pred) + (2 * lam * (w0 / abs(w0)))
-            dr_w1 = (-2 / train_set_size) * sum(X1 * (Y - Y_pred)) + (2 * lam * (w1 / abs(w1)))
-            dr_w2 = (-2 / train_set_size) * sum(X2 * (Y - Y_pred)) + (2 * lam * (w2 / abs(w2)))
+            dr_w0 = (-2 / train_set_size) * sum(Y - Y_pred) + (2 * lam * sign(w0))
+            dr_w1 = (-2 / train_set_size) * sum(X1 * (Y - Y_pred)) + (2 * lam * sign(w1))
+            dr_w2 = (-2 / train_set_size) * sum(X2 * (Y - Y_pred)) + (2 * lam * sign(w2))
 
             w0, w1, w2 = w0_new, w1_new, w2_new
 
