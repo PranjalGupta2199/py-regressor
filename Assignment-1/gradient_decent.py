@@ -3,7 +3,7 @@ import pandas as pd
 import math
 import matplotlib.pyplot as plt
 
-data = pd.read_csv('3D_spatial_network.csv')
+data = pd.read_csv('../dataset/3D_spatial_network.csv')
 N = len(data)
 
 train_set_size = int(0.7 * N)
