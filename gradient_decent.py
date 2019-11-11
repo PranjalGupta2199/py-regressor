@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import math
+import matplotlib.pyplot as plt
 
 data = pd.read_csv('3D_spatial_network.csv')
 N = len(data)
@@ -21,12 +22,33 @@ L = 0.00001  # Learning rate
 w0, w1, w2 = 0, 0, 0
 w0_new, w1_new, w2_new = 1, 1, 1
 
+def rms_calc(w1, w2, w0):
+    rms_error = 0.0
+    for data_index in range(test_set_size):
+
+        index = train_set_size + data_index - 1
+        y = data.iloc[index, 3]
+        x1 = data.iloc[index, 1]
+        x2 = data.iloc[index, 2]
+
+        error = abs(y - ((w1 * x1) + (w2 * x2) + (w0)))
+        rms_error += (error * error)
+
+    rms_error /= test_set_size
+    rms_error = math.sqrt(rms_error)
+    print("RMS Error:", rms_error)
+    return rms_error
 
 
-steps = 1000
+
+
+steps = 0
 precision = 0.000001
 
-while (steps > 0 and (abs(w0 - w0_new) + abs(w1 - w1_new) + abs(w2 - w2_new)) > precision):
+x_axis = []  # iteration
+y_axis = []  # error
+
+while (steps < 1000 and (abs(w0 - w0_new) + abs(w1 - w1_new) + abs(w2 - w2_new)) > precision):
 
     Y_pred = (w1 * X1) + (w2 * X2) + w0
 
@@ -43,30 +65,25 @@ while (steps > 0 and (abs(w0 - w0_new) + abs(w1 - w1_new) + abs(w2 - w2_new)) > 
 
     
 
-    steps -= 1
-    print(10000 - steps)
+    steps += 1
+    print(steps)
     print("Parameters: ", w0_new, w1_new, w2_new)
     print("Delta: ", (abs(w0 - w0_new) + abs(w1 - w1_new) + abs(w2 - w2_new)))
     print()
 
+    if steps % 20 == 0:
+        print("calculating error...")
+        x_axis.append(steps)
+        y_axis.append(rms_calc(w1_new, w2_new, w0_new))
+
 print("Final Parameters: ", w0_new, w1_new, w2_new)
 print("steps left: ", steps)
 
-# calculating error
 
+# graph plotting
+plt.xlabel('Iteration:')
+plt.ylabel('Error:')
+plt.plot(x_axis, y_axis)
+plt.show()
 
-rms_error = 0.0
-for data_index in range(test_set_size):
-
-    index = train_set_size + data_index - 1
-    y = data.iloc[index, 3]
-    x1 = data.iloc[index, 1]
-    x2 = data.iloc[index, 2]
-
-    error = abs(y - ((w1_new * x1) + (w2_new * x2) + (w0_new)))
-    rms_error += (error * error)
-
-rms_error /= test_set_size
-rms_error = math.sqrt(rms_error)
-print("RMS Error:", rms_error)
 
