@@ -74,7 +74,7 @@ def x_calc(wn):
     return np.power(X1, coef_map[wn][1]) * np.power(X2, coef_map[wn][2])
 
 # lambda_vals = [x / 1000 for x in range(1, 5)]
-lambda_vals = [0.0001, 0.0005, 0.001, 0.01, 0.1, 0.25, 0.5, 1, 2, 5, 10, 100, 1000]
+lambda_vals = [1000000000]
 
 
 def error_function_ridge(error_func, lam, w):
@@ -148,5 +148,5 @@ def regression(error_function, plot_title):
 
 # L1 Regularization: Lasso Regression
 # L2 Regularization: Ridge Regression
-regression(error_function_lasso, "L1 Regularization: Lasso Regression")
 # regression(error_function_lasso, "L1 Regularization: Lasso Regression")
+regression(error_function_ridge, "L2 Regularization: Ridge Regression")
