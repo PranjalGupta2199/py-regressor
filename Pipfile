@@ -4,11 +4,13 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+autopep8 = "*"
 
 [packages]
 pandas = "*"
 numpy = "*"
 matplotlib = "*"
+scipy = "*"
 
 [requires]
 python_version = "3.7"
