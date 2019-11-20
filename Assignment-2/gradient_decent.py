@@ -14,15 +14,21 @@ test_set_size = int(0.3 * N)
 
 # Equation: y = w1x1 + w2x2 + w0
 
+X1_c = data.iloc[0: N, 1]
+X2_c = data.iloc[0: N, 2]
+Y_c = data.iloc[0: N, 3]
 
+X1_c = (X1_c - np.min(X1_c)) / (np.max(X1_c) - np.min(X1_c))
+X2_c = (X2_c - np.min(X2_c)) / (np.max(X2_c) - np.min(X2_c))
+# Y_c = (Y_c - np.min(Y_c)) / (np.max(Y_c) - np.min(Y_c))
 
-X1 = data.iloc[0: train_set_size, 1]
-X2 = data.iloc[0: train_set_size, 2]
-Y = data.iloc[0: train_set_size, 3]
+X1 = X1_c[0: train_set_size]
+X2 = X2_c[0: train_set_size]
+Y = Y_c[0: train_set_size]
 
-L = 0.00000001  # Learning rate
+L = 0.0000001  # Learning rate
 
-DEGREE = 6
+DEGREE = 2
 
 
 def generate_poly(degree):
@@ -43,24 +49,6 @@ def generate_poly(degree):
 
 coef_map, w_size = generate_poly(DEGREE)
 
-def rms_calc(w):
-    rms_error = 0.0
-
-    for data_index in range(test_set_size):
-
-        index = train_set_size + data_index - 1
-        y_pred = 0.0
-        y = data.iloc[index, 3]
-        for tw in range(w_size):
-            x1 = data.iloc[index, 1]
-            x2 = data.iloc[index, 2]
-            y_pred += w[tw] * math.pow(x1, coef_map[tw][1]) * math.pow(x2, coef_map[tw][2])
-        rms_error += ((abs(y - y_pred)) * (abs(y - y_pred)))
-
-    rms_error /= test_set_size
-    rms_error = math.sqrt(rms_error)
-    return rms_error
-        
 
 def x_calc(wn):
     return np.power(X1, coef_map[wn][1]) * np.power(X2, coef_map[wn][2])
@@ -69,7 +57,7 @@ def x_calc(wn):
 w = np.array([1] * w_size)
 
 steps = 0
-steps_count = 50000
+steps_count = 20000
 precision = 0.00000001
 
 x_values = []
@@ -80,6 +68,12 @@ for x in range(w_size):
 x_values = (np.array(x_values)).T
 print(x_values)
 
+def rms_calc(w):
+    
+    loss = np.sum(np.square(np.dot(x_values, w) - Y))
+    rms_error = math.sqrt(loss / train_set_size)
+    return rms_error
+
 x_axis = []
 y_axis = []
 
@@ -88,23 +82,11 @@ while (steps < steps_count):
     # print(x_values.shape)
     # print(w.shape)
 
-    Y_pred = (np.matmul(x_values, w))
-    # print(Y_pred)
+    Y_pred = (np.dot(x_values, w))
+    error = Y_pred - Y 
+    cost = (1 / (2 * train_set_size)) * np.dot(error.T, error)
+    w = w - (L * np.dot(x_values.T, error))
 
-    # error_func = np.multiply((-2 / train_set_size) * (Y - Y_pred), x_values.reshape(w_size, train_set_size))
-    # print(error_func)
-    diff = (-2 / train_set_size) * (np.array(Y) - np.array(Y_pred))
-    
-    # diff = diff.reshape(train_set_size, 1)
-    error_func = np.matmul(diff, x_values)
-    # print("x vals", x_values.shape)
-    # print("diff", diff.shape)
-    # error_func = (error_func)
-    # error_func = diff @ x_values
-    err_func = (x_values.T) @ ((x_values @ w) - Y)
-    # print("error func:", error_func)
-
-    w = w - (L * error_func)
 
     print("step: ", steps)
     print("W new:", w)
@@ -112,7 +94,7 @@ while (steps < steps_count):
     steps += 1
 
     # if (steps % 100 == 0 or steps == 1 or (steps < 100 and steps % 10 == 0)):
-    if (steps % 10000 == 0):
+    if (steps % 20 == 0):
         err = rms_calc(w)
         print("error: ", err)
         x_axis.append(err)
@@ -127,6 +109,7 @@ print("error: ", rms_calc(w))
 # graph plotting
 plt.xlabel('Iteration:')
 plt.ylabel('Error:')
+plt.title("Degree: {}".format(DEGREE))
 plt.plot(y_axis, x_axis)
 plt.show()
 

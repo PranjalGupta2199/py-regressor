@@ -20,13 +20,20 @@ test_set_size = int(0.3 * N)
 
 # Equation: y = w1x1 + w2x2 + w0
 
-X1 = data.iloc[0: train_set_size, 1]
-X2 = data.iloc[0: train_set_size, 2]
-Y = data.iloc[0: train_set_size, 3]
+X1_c = data.iloc[0: N, 1]
+X2_c = data.iloc[0: N, 2]
+Y_c = data.iloc[0: N, 3]
 
+X1_c = (X1_c - np.min(X1_c)) / (np.max(X1_c) - np.min(X1_c))
+X2_c = (X2_c - np.min(X2_c)) / (np.max(X2_c) - np.min(X2_c))
+# Y_c = (Y_c - np.min(Y_c)) / (np.max(Y_c) - np.min(Y_c))
+
+X1 = X1_c[0: train_set_size]
+X2 = X2_c[0: train_set_size]
+Y = Y_c[0: train_set_size]
 L = 0.00000001  # Learning rate
 
-DEGREE = 2
+DEGREE = 6
 steps_count = 10000
 error_values = []
 
@@ -48,25 +55,14 @@ def generate_poly(degree):
 
 
 coef_map, w_size = generate_poly(DEGREE)
+x_values = []
 
 def rms_calc(w):
     print("Calculating error:")
-    rms_error = 0.0
-
-    for data_index in range(test_set_size):
-
-        index = train_set_size + data_index - 1
-        y_pred = 0.0
-        y = data.iloc[index, 3]
-        for tw in range(w_size):
-            x1 = data.iloc[index, 1]
-            x2 = data.iloc[index, 2]
-            y_pred += w[tw] * math.pow(x1, coef_map[tw][1]) * math.pow(x2, coef_map[tw][2])
-        rms_error += abs(y - y_pred)
-
-    rms_error /= test_set_size
-    rms_error = math.sqrt(rms_error)
+    loss = np.sum(np.square(np.dot(x_values, w) - Y))
+    rms_error = math.sqrt(loss / train_set_size)
     return rms_error
+
         
 
 def x_calc(wn):
@@ -74,24 +70,26 @@ def x_calc(wn):
     return np.power(X1, coef_map[wn][1]) * np.power(X2, coef_map[wn][2])
 
 # lambda_vals = [x / 1000 for x in range(1, 5)]
-lambda_vals = [1000000000]
+# lambda_vals = [0.001, 0.01, 0.1, 1, 10, 100, 1000]
 
+lambda_vals = [10000, 100000]  # large values
+
+l_error = []
 
 def error_function_ridge(error_func, lam, w):
     for i in range(w_size):
-        error_func += 2 * lam * int(w[i])
+        error_func += 2 * lam * float(w[i])
     return error_func
 
 def error_function_lasso(error_func, lam, w):
     for i in range(w_size):
-        error_func += 2 * lam * sign(int(w[i]))
+        error_func += lam * sign(float(w[i]))
     return error_func
 
 
 def regression(error_function, plot_title):
     steps = 0
-    x_values = []
-
+    global x_values
     for x in range(w_size):
         x_values.append(x_calc(x))
 
@@ -104,38 +102,30 @@ def regression(error_function, plot_title):
     for lam in lambda_vals:
         # Weight initialization
         w = np.array([1] * w_size)
-        w_new = np.array([2] * w_size)
         steps = 0
         while (steps < steps_count):
 
-            Y_pred = (np.matmul(x_values, w))
-
-            diff = (-2 / train_set_size) * (np.array(Y) - np.array(Y_pred))
-
-            error_func = diff @ x_values
-
-            error_func = error_function(error_func, lam, w)
-            
-            temp = w_new
-            w_new = w - (L * error_func)
-            w = temp
+            Y_pred = (np.dot(x_values, w))
+            error = Y_pred - Y 
+            cost = (1 / (2 * train_set_size)) * np.dot(error.T, error)
+            w = w - (L * error_function(np.dot(x_values.T, error), lam, w))
 
             print("step: ", steps)
-            print("delta: ", sum([abs(x) for x in np.subtract(w, w_new)]))
-            print("W new:", w_new)
+            print("W new:", w)
             print()
             steps += 1
 
             # exit()
         print(error_values)
-        err = rms_calc(w_new)
+        err = rms_calc(w)
+        l_error.append((lam, err))
         x_axis.append(lam)
         y_axis.append(err)
         error_values.append((lam, err))
         
 
         
-    print(w_new)
+    print(w)
     
         
     # graph plotting
@@ -148,5 +138,7 @@ def regression(error_function, plot_title):
 
 # L1 Regularization: Lasso Regression
 # L2 Regularization: Ridge Regression
+print(l_error)
 # regression(error_function_lasso, "L1 Regularization: Lasso Regression")
+
 regression(error_function_ridge, "L2 Regularization: Ridge Regression")
