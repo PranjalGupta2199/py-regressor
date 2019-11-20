@@ -7,6 +7,9 @@ import random
 data = pd.read_csv('../dataset/3D_spatial_network.csv')
 N = len(data)
 
+data = data.sample(frac=1).reset_index(drop=True)
+print(data)
+
 train_set_size = int(0.7 * N)
 test_set_size = int(0.3 * N)
 
@@ -16,7 +19,7 @@ X1 = data.iloc[0: train_set_size, 1]
 X2 = data.iloc[0: train_set_size, 2]
 Y = data.iloc[0: train_set_size, 3]
 
-L = 0.00001  # Learning rate
+L = 0.0000001  # Learning rate
 
 data_map = [x for x in range(0, train_set_size)]
 
@@ -41,56 +44,73 @@ def rms_calc(w1, w2, w0):
     print("RMS Error:", rms_error)
     return rms_error
 
+def r2_error(w1, w2, w0):
 
+    mean = np.mean(data.iloc[train_set_size:, 3])
+    tss = 0
+    rss = 0
 
-precision = 0.000001
-epoch = 9
+    for data_index in range(test_set_size):
+
+        index = train_set_size + data_index - 1
+        y = data.iloc[index, 3]
+        x1 = data.iloc[index, 1]
+        x2 = data.iloc[index, 2]
+
+        tss += ((y - mean) * (y - mean))
+        rss += math.pow((y - ((w1 * x1) + (w2 * x2) + (w0))), 2)
+
+    r2 = 1 - (rss / tss)
+    print("r2 error: ", r2)
+    return r2
+
 
 x_axis = []  # iteration
 y_axis = []  # error
 iter = 0
-step_val = 30000
+step_val = train_set_size
 
-for ep in range(epoch):
-        steps = 0
-        random.shuffle(data_map) 
-        while (steps <= step_val):
 
-                index = data_map[steps]
-                Y_pred = (w1 * X1[index]) + (w2 * X2[index]) + w0
+steps = 0
+epoch = 10
 
-                dr_w0 = (-2) * (Y[index] - Y_pred)
-                dr_w1 = (-2) * (X1[index] * (Y[index] - Y_pred))
-                dr_w2 = (-2) * (X2[index] * (Y[index] - Y_pred))
+for e in range(epoch):
+    random.shuffle(data_map) 
+    steps = 0
+    while (steps <= step_val):
 
-                w0, w1, w2 = w0_new, w1_new, w2_new
+        index = data_map[steps % train_set_size]
+        Y_pred = (w1 * X1[index]) + (w2 * X2[index]) + w0
 
-                # new values of parameters
-                w0_new = w0 - L * dr_w0
-                w1_new = w1 - L * dr_w1
-                w2_new = w2 - L * dr_w2
+        dr_w0 = (-1) * (Y[index] - Y_pred)
+        dr_w1 = (-1) * (X1[index] * (Y[index] - Y_pred))
+        dr_w2 = (-1) * (X2[index] * (Y[index] - Y_pred))
 
-                
+        # new values of parameters
+        w0 = w0 - L * dr_w0
+        w1 = w1 - L * dr_w1
+        w2 = w2 - L * dr_w2
 
-                steps += 1
-                print("steps:", steps)
-                print("epoch: ", ep)
-                print("Parameters: ", w0_new, w1_new, w2_new)
-                print("Delta: ", (abs(w0 - w0_new) + abs(w1 - w1_new) + abs(w2 - w2_new)))
-                print()
+        w0_new, w1_new, w2_new = w0, w1, w2
 
-                if steps % step_val == 0:
-                        print("calculating error...")
-                        x_axis.append(iter)
-                        iter += step_val
-                        y_axis.append(rms_calc(w1_new, w2_new, w0_new))
+        steps += 1
+        print("steps:", steps)
+        print("Parameters: ", w0, w1, w2)
+        print()
+
+    print("calculating error...")
+    x_axis.append(e)
+    y_axis.append(rms_calc(w1_new, w2_new, w0_new))
+                    
 
 print("Final Parameters: ", w0_new, w1_new, w2_new)
 print("steps left: ", steps)
+print("RMSE Error: ", rms_calc(w1_new, w2_new, w0_new))
+print("R2 Error: ", r2_error(w1_new, w2_new, w0_new))
 
 
 # graph plotting
-plt.xlabel('Iteration:')
+plt.xlabel('Epoch:')
 plt.ylabel('Error:')
 plt.plot(x_axis, y_axis)
 plt.show()

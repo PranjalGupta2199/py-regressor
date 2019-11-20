@@ -9,7 +9,8 @@ import matplotlib.pyplot as plt
 # constants
 data = pd.read_csv('../dataset/3D_spatial_network.csv')
 N = len(data)
-
+data = data.sample(frac=1).reset_index(drop=True)
+print(data)
 train_set_size = int(0.7 * N)
 test_set_size = int(0.3 * N)
 
@@ -18,8 +19,8 @@ X2 = data.iloc[0: train_set_size, 2]
 Y = data.iloc[0: train_set_size, 3]
 L = 0.00001  # Learning rate
 
-lambda_vals = [x / 1000 for x in range(1, 10)]
-lambda_vals += [0.1, 0.25, 0.5, 1, 2]
+
+lambda_vals = [0.0001, 0.001, 0.01, 0.1, 1, 10]
 
 steps_count = 100
 
@@ -42,6 +43,29 @@ def rms_calc(w1, w2, w0):
     rms_error = math.sqrt(rms_error)
     print("RMS Error:", rms_error)
     return rms_error
+
+def r2_error(w1, w2, w0):
+
+    mean = np.mean(data.iloc[train_set_size:, 3])
+    tss = 0
+    rss = 0
+
+    for data_index in range(test_set_size):
+
+        index = train_set_size + data_index - 1
+        y = data.iloc[index, 3]
+        x1 = data.iloc[index, 1]
+        x2 = data.iloc[index, 2]
+
+        tss += ((y - mean) * (y - mean))
+        rss += math.pow((y - ((w1 * x1) + (w2 * x2) + (w0))), 2)
+
+    r2 = 1 - (rss / tss)
+    print("r2 error: ", r2)
+    return r2
+
+l2_error = []
+l1_error = []
 
 def ridge_regression():
     steps = 0
@@ -81,8 +105,11 @@ def ridge_regression():
             print("Delta: ", (abs(w0 - w0_new) + abs(w1 - w1_new) + abs(w2 - w2_new)))
             print()
 
+        rmse = rms_calc(w1_new, w2_new, w0_new)
+        r2 = r2_error(w1_new, w2_new, w0_new)
         x_axis.append(lam)
-        y_axis.append(rms_calc(w1_new, w2_new, w0_new))
+        y_axis.append(rmse)
+        l2_error.append((lam, rmse, r2))
 
     print("L2 Regularization: Ridge Regression")
     print("Final Parameters: ", w0_new, w1_new, w2_new)
@@ -106,7 +133,6 @@ def lasso_regression():
 
     x_axis = []  # iteration
     y_axis = []  # error
-    lambda_vals = [x / 1000 for x in range(1, 10)]
 
     for lam in lambda_vals:
 
@@ -120,9 +146,9 @@ def lasso_regression():
 
             Y_pred = (w1 * X1) + (w2 * X2) + w0
 
-            dr_w0 = (-2 / train_set_size) * sum(Y - Y_pred) + (2 * lam * sign(w0))
-            dr_w1 = (-2 / train_set_size) * sum(X1 * (Y - Y_pred)) + (2 * lam * sign(w1))
-            dr_w2 = (-2 / train_set_size) * sum(X2 * (Y - Y_pred)) + (2 * lam * sign(w2))
+            dr_w0 = (-2 / train_set_size) * sum(Y - Y_pred) + (lam * sign(w0))
+            dr_w1 = (-2 / train_set_size) * sum(X1 * (Y - Y_pred)) + (lam * sign(w1))
+            dr_w2 = (-2 / train_set_size) * sum(X2 * (Y - Y_pred)) + (lam * sign(w2))
 
             w0, w1, w2 = w0_new, w1_new, w2_new
 
@@ -139,8 +165,13 @@ def lasso_regression():
             print("Delta: ", (abs(w0 - w0_new) + abs(w1 - w1_new) + abs(w2 - w2_new)))
             print()
 
+        rmse = rms_calc(w1_new, w2_new, w0_new)
+        r2 = r2_error(w1_new, w2_new, w0_new)
         x_axis.append(lam)
-        y_axis.append(rms_calc(w1_new, w2_new, w0_new))
+        y_axis.append(rmse)
+        l1_error.append((lam, rmse, r2))
+        x_axis.append(lam)
+        y_axis.append(rmse)
 
     print("L1 Regularization: Lasso Regression")
     print("Final Parameters: ", w0_new, w1_new, w2_new)
@@ -156,3 +187,6 @@ def lasso_regression():
 
 ridge_regression()
 lasso_regression()
+
+print("l1_error: ", l1_error)
+print("l2 error: ", l2_error)

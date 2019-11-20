@@ -27,6 +27,25 @@ def rms_calc(w1, w2, w0):
     print("RMS Error:", rms_error)
     return rms_error
 
+def r2_error(w1, w2, w0):
+
+    mean = np.mean(data.iloc[train_set_size:, 3])
+    tss = 0
+    rss = 0
+
+    for data_index in range(test_set_size):
+
+        index = train_set_size + data_index - 1
+        y = data.iloc[index, 3]
+        x1 = data.iloc[index, 1]
+        x2 = data.iloc[index, 2]
+
+        tss += ((y - mean) * (y - mean))
+        rss += math.pow((y - ((w1 * x1) + (w2 * x2) + (w0))), 2)
+
+    r2 = 1 - (rss / tss)
+    print("r2 error: ", r2)
+    return r2
 
 # Equation: y = w1x1 + w2x2 + w0
 
@@ -46,4 +65,6 @@ w1 = thetha[1]
 w2 = thetha[2]
 
 print(thetha)
-print("Error: ", rms_calc(w1, w2, w0))
+print("RMSE Error: ", rms_calc(w1, w2, w0))
+print("R2 Error: ", r2_error(w1, w2, w0))
+

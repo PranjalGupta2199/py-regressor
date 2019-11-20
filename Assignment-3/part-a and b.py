@@ -1,12 +1,21 @@
 import numpy as np
 from scipy.special import gamma as gm
 import matplotlib.pyplot as plt
+import random
 
-data_points = (np.random.binomial(1, 0.5, 160))
 pdf = (np.linspace(0.0, 1.0, num=1000))
 pdf = np.sort(pdf, axis = None)
 # print(pdf)
 
+uml = np.random.random()
+while (uml >= 0.4 and uml <= 0.6):
+    uml = np.random.random()
+
+data_points = ((int(uml * 160) * [1]) + (int((1 - uml) * 160) * [0]))
+random.shuffle(data_points)
+data_points = np.array(data_points) 
+
+print(uml, data_points)
 
 def beta_function(a, b, u):
     beta = (gm(a + b) / (gm(a) * gm(b))) * (u ** (a - 1)) * ((1 - u) ** (b - 1))
@@ -38,7 +47,7 @@ def sequential_learning(a, b):
         plt.plot(x_axis, y_axis)
         plt.xlabel("µ: (sample used - {})".format(number))
         plt.ylabel("prior (β)")
-        plt.title("µ(ML): 0.35")
+        plt.title("µ(ML): {}".format(uml))
         plt.savefig('prior/plot_{}.png'.format(number))
 
 
@@ -63,7 +72,7 @@ def entire_dataset_learning(a, b):
     plt.plot(x_axis, y_axis)
     plt.xlabel("µ")
     plt.ylabel("posterior (β)")
-    plt.title("µ(ML): 0.35")
+    plt.title("µ(ML): {}".format(uml))
     plt.show()
 
-entire_dataset_learning(2, 3)
+# entire_dataset_learning(2, 3)

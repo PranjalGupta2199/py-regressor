@@ -6,6 +6,9 @@ import matplotlib.pyplot as plt
 data = pd.read_csv('../dataset/3D_spatial_network.csv')
 N = len(data)
 
+data = data.sample(frac=1).reset_index(drop=True)
+print(data)
+
 train_set_size = int(0.7 * N)
 test_set_size = int(0.3 * N)
 
@@ -39,8 +42,25 @@ def rms_calc(w1, w2, w0):
     print("RMS Error:", rms_error)
     return rms_error
 
+def r2_error(w1, w2, w0):
 
+    mean = np.mean(data.iloc[train_set_size:, 3])
+    tss = 0
+    rss = 0
 
+    for data_index in range(test_set_size):
+
+        index = train_set_size + data_index - 1
+        y = data.iloc[index, 3]
+        x1 = data.iloc[index, 1]
+        x2 = data.iloc[index, 2]
+
+        tss += ((y - mean) * (y - mean))
+        rss += math.pow((y - ((w1 * x1) + (w2 * x2) + (w0))), 2)
+
+    r2 = 1 - (rss / tss)
+    print("r2 error: ", r2)
+    return r2
 
 steps = 0
 precision = 0.000001
@@ -78,7 +98,8 @@ while (steps < 1000 and (abs(w0 - w0_new) + abs(w1 - w1_new) + abs(w2 - w2_new))
 
 print("Final Parameters: ", w0_new, w1_new, w2_new)
 print("steps left: ", steps)
-
+r2_error(w1_new, w2_new, w0_new)
+rms_calc(w1_new, w2_new, w0_new)
 
 # graph plotting
 plt.xlabel('Iteration:')
