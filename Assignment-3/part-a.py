@@ -2,7 +2,7 @@ import numpy as np
 from scipy.special import gamma as gm
 import matplotlib.pyplot as plt
 
-data_points = (np.random.binomial(1, 0.35, 160))
+data_points = (np.random.binomial(1, 0.5, 160))
 pdf = (np.linspace(0.0, 1.0, num=1000))
 pdf = np.sort(pdf, axis = None)
 # print(pdf)
@@ -50,15 +50,13 @@ def entire_dataset_learning(a, b):
     x_axis = []
     y_axis = []
     for u in pdf:
-        likelihood = 1
         a_temp = a
         b_temp = b
         for data in data_points:
-            likelihood *= ((u ** (data)) * ((1 - u) ** (1 - data)))
             a_temp += data
             b_temp += (1 - data)
 
-        posterior = beta_function(a_temp, b_temp, u) * likelihood
+        posterior = beta_function(a_temp, b_temp, u)
         x_axis.append(u)
         y_axis.append(posterior)
 

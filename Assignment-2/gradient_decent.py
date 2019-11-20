@@ -6,11 +6,15 @@ import matplotlib.pyplot as plt
 data = pd.read_csv('../dataset/3D_spatial_network.csv')
 # data = pd.read_csv('../dataset/test.csv')
 N = len(data)
+data = data.sample(frac=1).reset_index(drop=True)
+print(data)
 
 train_set_size = int(0.7 * N)
 test_set_size = int(0.3 * N)
 
 # Equation: y = w1x1 + w2x2 + w0
+
+
 
 X1 = data.iloc[0: train_set_size, 1]
 X2 = data.iloc[0: train_set_size, 2]
@@ -18,7 +22,7 @@ Y = data.iloc[0: train_set_size, 3]
 
 L = 0.00000001  # Learning rate
 
-DEGREE = 2
+DEGREE = 6
 
 
 def generate_poly(degree):
@@ -51,7 +55,7 @@ def rms_calc(w):
             x1 = data.iloc[index, 1]
             x2 = data.iloc[index, 2]
             y_pred += w[tw] * math.pow(x1, coef_map[tw][1]) * math.pow(x2, coef_map[tw][2])
-        rms_error += abs(y - y_pred)
+        rms_error += ((abs(y - y_pred)) * (abs(y - y_pred)))
 
     rms_error /= test_set_size
     rms_error = math.sqrt(rms_error)
@@ -63,10 +67,9 @@ def x_calc(wn):
 
 # Weight initialization
 w = np.array([1] * w_size)
-w_new = np.array([2] * w_size)
 
 steps = 0
-steps_count = 600
+steps_count = 50000
 precision = 0.00000001
 
 x_values = []
@@ -80,39 +83,37 @@ print(x_values)
 x_axis = []
 y_axis = []
 
-while (steps < steps_count and sum([abs(x) for x in np.subtract(w, w_new)]) > precision):
+while (steps < steps_count):
 
-    print(x_values.shape)
-    print(w.shape)
+    # print(x_values.shape)
+    # print(w.shape)
 
     Y_pred = (np.matmul(x_values, w))
-    print(Y_pred)
+    # print(Y_pred)
 
     # error_func = np.multiply((-2 / train_set_size) * (Y - Y_pred), x_values.reshape(w_size, train_set_size))
     # print(error_func)
     diff = (-2 / train_set_size) * (np.array(Y) - np.array(Y_pred))
     
     # diff = diff.reshape(train_set_size, 1)
-    print("diff matrix:", diff)
-    # error_func = np.matmul(diff, x_values)
+    error_func = np.matmul(diff, x_values)
     # print("x vals", x_values.shape)
     # print("diff", diff.shape)
     # error_func = (error_func)
-    error_func = diff @ x_values
-    print("error func:", error_func)
-    
-    temp = w_new
-    w_new = w - (L * error_func)
-    w = temp
+    # error_func = diff @ x_values
+    err_func = (x_values.T) @ ((x_values @ w) - Y)
+    # print("error func:", error_func)
+
+    w = w - (L * error_func)
 
     print("step: ", steps)
-    print("delta: ", sum([abs(x) for x in np.subtract(w, w_new)]))
-    print("W new:", w_new)
+    print("W new:", w)
     print()
     steps += 1
 
-    if (steps % 100 == 0 or steps == 1 or (steps < 100 and steps % 10 == 0)):
-        err = rms_calc(w_new)
+    # if (steps % 100 == 0 or steps == 1 or (steps < 100 and steps % 10 == 0)):
+    if (steps % 10000 == 0):
+        err = rms_calc(w)
         print("error: ", err)
         x_axis.append(err)
         y_axis.append(steps)
@@ -120,7 +121,8 @@ while (steps < steps_count and sum([abs(x) for x in np.subtract(w, w_new)]) > pr
     # exit()
 
     
-print(w_new)
+print(w)
+print("error: ", rms_calc(w))
     
 # graph plotting
 plt.xlabel('Iteration:')
