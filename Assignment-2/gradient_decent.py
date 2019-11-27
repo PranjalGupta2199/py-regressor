@@ -18,6 +18,8 @@ X1_c = data.iloc[0: N, 1]
 X2_c = data.iloc[0: N, 2]
 Y_c = data.iloc[0: N, 3]
 
+
+# min max normalization (feature scaling)
 X1_c = (X1_c - np.min(X1_c)) / (np.max(X1_c) - np.min(X1_c))
 X2_c = (X2_c - np.min(X2_c)) / (np.max(X2_c) - np.min(X2_c))
 # Y_c = (Y_c - np.min(Y_c)) / (np.max(Y_c) - np.min(Y_c))
@@ -28,11 +30,14 @@ Y = Y_c[0: train_set_size]
 
 L = 0.0000001  # Learning rate
 
-DEGREE = 7
+DEGREE = 6
 
 
 def generate_poly(degree):
 
+    '''
+    This function generates the polynomial based on the degree.
+    '''
     coef = 0
     coef_map = {}
     # print("Polynomial: ")
@@ -51,21 +56,31 @@ coef_map, w_size = generate_poly(DEGREE)
 
 
 def x_calc(wn):
+    '''
+    This function calculated the co-efficient of the weights for train dataset.
+    '''
     return np.power(X1, coef_map[wn][1]) * np.power(X2, coef_map[wn][2])
 
 def x_calc_test(wn):
+    '''
+    This function calculated the co-efficient of the weights for test dataset.
+    '''
     return np.power(X1_c[train_set_size:], coef_map[wn][1]) * np.power(X2_c[train_set_size:], coef_map[wn][2])
 
 # Weight initialization
 w = np.array([1] * w_size)
 
 steps = 0
-steps_count = 20000
-precision = 0.00000001
 
+# total number of iterations to run gradient decent
+steps_count = 20000
+
+# feature matrix for train and test dataset respectively
 x_values = []
 x_values_test = []
 
+
+# feature matrix generation
 for x in range(w_size):
     x_values.append(x_calc(x))
 
@@ -79,12 +94,18 @@ print(x_values.shape)
 
 def rms_calc(w):
     
+    '''
+    this function calculates RMS Error for train set data.
+    '''
     loss = np.sum(np.square(np.dot(x_values, w) - Y))
     rms_error = math.sqrt(loss / train_set_size)
     return rms_error
 
 def rms_test_calc(w):
     
+    '''
+    this function calculates RMS Error for test set data.
+    '''
     loss = np.sum(np.square(np.dot(x_values_test, w) - Y_c[train_set_size:]))
     rms_error = math.sqrt(loss / test_set_size)
     return rms_error
@@ -92,6 +113,9 @@ def rms_test_calc(w):
 
 def r2_error(w):
 
+    '''
+    this function calculates r2 error for test set.
+    '''
     mean = np.mean(data.iloc[train_set_size:, 3])
     tss = np.sum(np.square((Y_c[train_set_size:] - mean)))
     rss = np.sum(np.square((Y_c[train_set_size:] - np.dot(x_values_test, w))))
@@ -99,15 +123,22 @@ def r2_error(w):
     print("r2 error: ", r2)
     return r2
 
+# graph axis
 x_axis = []
 y_axis = []
 
 while (steps < steps_count):
 
+    '''
+    gradient decent - iterations while loop.
+    '''
+
     # print(x_values.shape)
     # print(w.shape)
 
+    # predicted value of y.
     Y_pred = (np.dot(x_values, w))
+
     error = Y_pred - Y
     w = w - (L * np.dot(x_values.T, error))
     print(np.dot(x_values.T, error))
@@ -118,7 +149,6 @@ while (steps < steps_count):
     print()
     steps += 1
 
-    # if (steps % 100 == 0 or steps == 1 or (steps < 100 and steps % 10 == 0)):
     if (steps % 20 == 0):
         err = rms_calc(w)
         print("error: ", err)
@@ -129,6 +159,7 @@ while (steps < steps_count):
 
     
 print(w)
+# printing final errors.
 print("RMSE error: ", rms_test_calc(w))
 print("R2 error: ", r2_error(w))
     

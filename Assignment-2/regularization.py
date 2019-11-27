@@ -12,6 +12,7 @@ import math
 import matplotlib.pyplot as plt
 
 data = pd.read_csv('../dataset/3D_spatial_network.csv')
+data = data.sample(frac=1).reset_index(drop=True)  # dataset shuffling
 # data = pd.read_csv('../dataset/test.csv')
 N = len(data)
 
@@ -24,6 +25,8 @@ X1_c = data.iloc[0: N, 1]
 X2_c = data.iloc[0: N, 2]
 Y_c = data.iloc[0: N, 3]
 
+
+# min max normalization
 X1_c = (X1_c - np.min(X1_c)) / (np.max(X1_c) - np.min(X1_c))
 X2_c = (X2_c - np.min(X2_c)) / (np.max(X2_c) - np.min(X2_c))
 # Y_c = (Y_c - np.min(Y_c)) / (np.max(Y_c) - np.min(Y_c))
@@ -34,14 +37,26 @@ Y = Y_c[0: train_set_size]
 L = 0.00000001  # Learning rate
 
 DEGREE = 6
+
+# number of iterations to run gradient decent
 steps_count = 10000
 error_values = []
 
 def sign(a):
+
+    '''
+    returns -1 for (-inf, 0)
+    returns 1 for (0, inf)
+    returns 0 for 0
+    '''
+
     return (a > 0) - (a < 0)
 
 def generate_poly(degree):
-
+    
+    '''
+    This function generates the polynomial based on the degree.
+    '''
     coef = 0
     coef_map = {}
     # print("Polynomial: ")
@@ -63,6 +78,9 @@ def x_calc(wn):
     return np.power(X1, coef_map[wn][1]) * np.power(X2, coef_map[wn][2])
 
 def x_calc_test(wn):
+    '''
+    generate feature matrix for test set.
+    '''
     return np.power(X1_c[train_set_size:], coef_map[wn][1]) * np.power(X2_c[train_set_size:], coef_map[wn][2])
 
 for x in range(w_size):
@@ -77,12 +95,17 @@ print(x_values)
 print(x_values.shape)
 
 def rms_calc(w):
-    
+    '''
+    this function calculates RMS Error for train set data.
+    '''
     loss = np.sum(np.square(np.dot(x_values, w) - Y))
     rms_error = math.sqrt(loss / train_set_size)
     return rms_error
 
 def rms_test_calc(w):
+    '''
+    this function calculates RMS Error for test set data.
+    '''
     
     loss = np.sum(np.square(np.dot(x_values_test, w) - Y_c[train_set_size:]))
     rms_error = math.sqrt(loss / test_set_size)
@@ -101,24 +124,33 @@ def r2_error(w):
 
 
 # lambda_vals = [x / 1000 for x in range(1, 5)]
-# lambda_vals = [0.001, 0.01, 0.1, 1, 10, 100, 1000]
+lambda_vals = [0.001, 0.01, 0.1, 1, 10, 100, 1000]
 
-lambda_vals = [10000, 100000]  # large values
+lambda_vals += [10000, 100000]  # large values
 
 l_error = []
 
 def error_function_ridge(error_func, lam, w):
+    '''
+    error function for ridge regression.
+    '''
     for i in range(w_size):
         error_func += 2 * lam * float(w[i])
     return error_func
 
 def error_function_lasso(error_func, lam, w):
+    '''
+    error function for ridge regression.
+    '''
     for i in range(w_size):
         error_func += lam * sign(float(w[i]))
     return error_func
 
 
 def regression(error_function, plot_title):
+    '''
+    Actual regression function, which takes error_function as input.
+    '''
     steps = 0
     global x_values
     for x in range(w_size):
@@ -148,7 +180,9 @@ def regression(error_function, plot_title):
 
             # exit()
         print(error_values)
+        # rms error calculation
         err = rms_calc(w)
+        err2 = rms_test_calc(w)
         l_error.append((lam, err))
         x_axis.append(lam)
         y_axis.append(err)
