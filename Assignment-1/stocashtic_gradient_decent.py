@@ -65,18 +65,23 @@ def r2_error(w1, w2, w0):
     return r2
 
 
+
 x_axis = []  # iteration
 y_axis = []  # error
 iter = 0
-step_val = train_set_size
-
+step_val = 2000
 
 steps = 0
-epoch = 10
+epoch = 100
 
 for e in range(epoch):
     random.shuffle(data_map) 
     steps = 0
+
+    print("calculating error...")
+    x_axis.append(e)
+    y_axis.append(rms_calc(w1_new, w2_new, w0_new))
+
     while (steps <= step_val):
 
         index = data_map[steps % train_set_size]
@@ -98,9 +103,6 @@ for e in range(epoch):
         print("Parameters: ", w0, w1, w2)
         print()
 
-    print("calculating error...")
-    x_axis.append(e)
-    y_axis.append(rms_calc(w1_new, w2_new, w0_new))
                     
 
 print("Final Parameters: ", w0_new, w1_new, w2_new)

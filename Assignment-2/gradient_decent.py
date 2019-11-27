@@ -28,7 +28,7 @@ Y = Y_c[0: train_set_size]
 
 L = 0.0000001  # Learning rate
 
-DEGREE = 6
+DEGREE = 7
 
 
 def generate_poly(degree):
@@ -53,6 +53,9 @@ coef_map, w_size = generate_poly(DEGREE)
 def x_calc(wn):
     return np.power(X1, coef_map[wn][1]) * np.power(X2, coef_map[wn][2])
 
+def x_calc_test(wn):
+    return np.power(X1_c[train_set_size:], coef_map[wn][1]) * np.power(X2_c[train_set_size:], coef_map[wn][2])
+
 # Weight initialization
 w = np.array([1] * w_size)
 
@@ -61,11 +64,16 @@ steps_count = 20000
 precision = 0.00000001
 
 x_values = []
+x_values_test = []
 
 for x in range(w_size):
     x_values.append(x_calc(x))
 
+for x in range(w_size):
+    x_values_test.append(x_calc_test(x))
+
 x_values = (np.array(x_values)).T
+x_values_test = (np.array(x_values_test)).T
 print(x_values)
 print(x_values.shape)
 
@@ -74,6 +82,22 @@ def rms_calc(w):
     loss = np.sum(np.square(np.dot(x_values, w) - Y))
     rms_error = math.sqrt(loss / train_set_size)
     return rms_error
+
+def rms_test_calc(w):
+    
+    loss = np.sum(np.square(np.dot(x_values_test, w) - Y_c[train_set_size:]))
+    rms_error = math.sqrt(loss / test_set_size)
+    return rms_error
+
+
+def r2_error(w):
+
+    mean = np.mean(data.iloc[train_set_size:, 3])
+    tss = np.sum(np.square((Y_c[train_set_size:] - mean)))
+    rss = np.sum(np.square((Y_c[train_set_size:] - np.dot(x_values_test, w))))
+    r2 = 1 - (rss / tss)
+    print("r2 error: ", r2)
+    return r2
 
 x_axis = []
 y_axis = []
@@ -105,7 +129,8 @@ while (steps < steps_count):
 
     
 print(w)
-print("error: ", rms_calc(w))
+print("RMSE error: ", rms_test_calc(w))
+print("R2 error: ", r2_error(w))
     
 # graph plotting
 plt.xlabel('Iteration:')
@@ -113,5 +138,3 @@ plt.ylabel('Error:')
 plt.title("Degree: {}".format(DEGREE))
 plt.plot(y_axis, x_axis)
 plt.show()
-
-
