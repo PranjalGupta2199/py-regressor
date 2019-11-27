@@ -28,7 +28,7 @@ Y = Y_c[0: train_set_size]
 
 L = 0.0000001  # Learning rate
 
-DEGREE = 2
+DEGREE = 6
 
 
 def generate_poly(degree):
@@ -67,6 +67,7 @@ for x in range(w_size):
 
 x_values = (np.array(x_values)).T
 print(x_values)
+print(x_values.shape)
 
 def rms_calc(w):
     
@@ -83,10 +84,10 @@ while (steps < steps_count):
     # print(w.shape)
 
     Y_pred = (np.dot(x_values, w))
-    error = Y_pred - Y 
-    cost = (1 / (2 * train_set_size)) * np.dot(error.T, error)
+    error = Y_pred - Y
     w = w - (L * np.dot(x_values.T, error))
-
+    print(np.dot(x_values.T, error))
+    # exit()
 
     print("step: ", steps)
     print("W new:", w)

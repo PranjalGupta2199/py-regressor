@@ -72,9 +72,9 @@ while (steps < 1000 and (abs(w0 - w0_new) + abs(w1 - w1_new) + abs(w2 - w2_new))
 
     Y_pred = (w1 * X1) + (w2 * X2) + w0
 
-    dr_w0 = (-2 / train_set_size) * sum(Y - Y_pred)
-    dr_w1 = (-2 / train_set_size) * sum(X1 * (Y - Y_pred))
-    dr_w2 = (-2 / train_set_size) * sum(X2 * (Y - Y_pred))
+    dr_w0 = sum(Y_pred - Y)
+    dr_w1 = sum(X1 * (Y_pred - Y))
+    dr_w2 = sum(X2 * (Y_pred - Y))
 
     w0, w1, w2 = w0_new, w1_new, w2_new
 
