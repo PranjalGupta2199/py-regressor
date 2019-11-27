@@ -24,6 +24,9 @@ def beta_function(a, b, u):
 def beta_posterior(beta, u, x):
     return (beta * (u ** x) * ((1 - u) ** (1 - x)))
 
+def next_likelihood(u, x):
+    return ((u ** x) * ((1 - u) ** (1 - x)))
+
 def sequential_learning(a, b):
 
     number = 0
@@ -51,7 +54,34 @@ def sequential_learning(a, b):
         plt.savefig('prior/plot_{}.png'.format(number))
 
 
-# sequential_learning(2, 3)
+def sequential_learning2(a, b):
+
+    number = 0
+    likelihood = 1
+    
+    for data in data_points:
+        plt.clf()
+        number += 1
+        x_axis = []
+        y_axis = []
+        for u in pdf:
+            print("data:", data)
+            print("u: ", u)
+            
+            prior_beta = beta_function(a, b, u) * likelihood
+            # posterior_beta = beta_posterior(prior_beta, u, data)
+            x_axis.append(u)
+            y_axis.append(prior_beta)
+        
+        likelihood *= (next_likelihood(u, data))
+
+        plt.plot(x_axis, y_axis)
+        plt.xlabel("µ: (sample used - {})".format(number))
+        plt.ylabel("prior (β)")
+        plt.title("µ(ML): {}".format(uml))
+        plt.savefig('prior2/plot_{}.png'.format(number))
+
+sequential_learning2(2, 3)
 
 def entire_dataset_learning(a, b):
 
